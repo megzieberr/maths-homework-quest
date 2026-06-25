@@ -70,10 +70,16 @@ alter table public.struggles  enable row level security;
 alter table public.app_config enable row level security;
 revoke all on public.students, public.quests, public.progress, public.struggles, public.app_config from anon, authenticated;
 
--- drop functions from the old roster-based version
+-- drop old-version functions first. Some are recreated below with renamed
+-- parameters (p_name -> p_username), which create-or-replace cannot do.
 drop function if exists public.mhq_list_students();
 drop function if exists public.mhq_first_login(text, text);
 drop function if exists public.mhq_admin_add_student(text, text);
+drop function if exists public._mhq_auth(text, text);
+drop function if exists public.mhq_login(text, text);
+drop function if exists public.mhq_get_state(text, text);
+drop function if exists public.mhq_submit_quest(text, text, text, numeric, int, int, int);
+drop function if exists public.mhq_log_struggle(text, text, text);
 
 -- ============================================================
 --  HELPERS
