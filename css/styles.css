@@ -160,6 +160,10 @@ h1{font-size:26px} h2{font-size:20px} h3{font-size:17px}
 .q-task{font-size:13px;color:var(--muted);margin:-2px 0 10px}
 .q-calc{max-width:340px;margin:8px auto 4px}
 .q-calc.locked{opacity:.55;pointer-events:none;filter:saturate(.55)}
+.q-check{display:flex;justify-content:center;margin-top:14px}
+.q-check .btn{min-width:200px}
+.feedback .fb-foot{display:flex;gap:10px;flex-wrap:wrap}
+.feedback .fb-sub{margin-top:2px}
 
 .q-prompt{font-size:16px;line-height:1.55;margin-bottom:14px}
 .q-prompt b,.q-prompt .hl{color:var(--accent);font-weight:600}

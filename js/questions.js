@@ -130,37 +130,68 @@ export function mountQuestion(host, q, handlers = {}) {
     });
   }
 
-  // hands-on calculator task: the learner must actually perform the step on
-  // an embedded Casio. We watch its milestone events to decide win/lose.
+  // hands-on calculator task: the learner works the embedded Casio, then taps
+  // "Check my answer". Correct → ✓ Continue. Wrong → a "Not quite" panel with
+  // [Try again] (same task, fresh calculator) and [Show me the steps] → retry.
   else if (q.type === "calcdo") {
     if (q.task) inputHost.appendChild(el("p", "q-task", q.task));
     const calcBox = el("div", "q-calc");
     inputHost.appendChild(calcBox);
-    let done = false;
+    const checkRow = el("div", "q-check");
+    const checkBtn = el("button", "btn primary big", "Check my answer");
+    checkRow.appendChild(checkBtn);
+    inputHost.appendChild(checkRow);
+
+    const flags = { cleared: false, enteredStat: false, lastStat: null };
     const ms = a => a.slice().sort((x, y) => x - y).join(",");
-    const evalGoal = (g, type, p) => {
-      if (g.type === "clear")    return type === "clear" ? "win" : null;
-      if (g.type === "statMode") return type === "statMode" ? "win" : null;
-      if (g.type === "freq")     return (type === "freq" && p === !!g.on) ? "win" : null;
-      if (g.type === "data")     return (type === "data" && ms(p) === ms(g.expect)) ? "win" : null;
-      if (g.type === "stat") {
-        if (type !== "stat") return null;
-        const tol = g.tol == null ? 1e-6 : g.tol;
-        const right = p && p.tok === g.tok && p.value != null && Math.abs(p.value - g.value) <= tol;
-        return right ? "win" : "lose";     // computing the WRONG measure/value counts as a wrong attempt
-      }
-      return null;
-    };
-    mountCalculator(calcBox, {
+    const calcApi = mountCalculator(calcBox, {
       setup: q.setup,
       onEvent(type, p) {
-        if (answered || done) return;
-        const r = evalGoal(q.goal, type, p);
-        if (!r) return;
-        done = true;
-        calcBox.classList.add("locked");
-        commit(r === "win", type);
+        if (type === "clear") flags.cleared = true;
+        else if (type === "statMode") flags.enteredStat = true;
+        else if (type === "stat") flags.lastStat = p;       // last value the learner computed (tok + value)
       },
+    });
+
+    function goalMet() {
+      const g = q.goal, s = calcApi.state();
+      if (g.type === "clear")    return flags.cleared;
+      if (g.type === "freq")     return s.freqOn === !!g.on;
+      if (g.type === "statMode") return flags.enteredStat || s.mode === "STAT";
+      if (g.type === "data")     return ms(s.data.map(d => d.x)) === ms(g.expect);
+      if (g.type === "stat") {
+        const tol = g.tol == null ? 1e-6 : g.tol;
+        return !!(flags.lastStat && flags.lastStat.tok === g.tok && flags.lastStat.value != null && Math.abs(flags.lastStat.value - g.value) <= tol);
+      }
+      return false;
+    }
+    const lockCalc = () => { calcBox.classList.add("locked"); checkBtn.disabled = true; hintBtn.style.display = "none"; };
+
+    checkBtn.addEventListener("click", () => {
+      if (answered) return;
+      if (goalMet()) { lockCalc(); checkRow.remove(); commit(true, "calcdo"); return; }
+      // wrong: lock this attempt (a retry re-mounts a fresh question), show the two-option panel
+      answered = true;
+      lockCalc();
+      handlers.onWrong && handlers.onWrong();
+      feedback.hidden = false; feedback.classList.add("bad");
+      feedback.innerHTML = `<div class="fb-head">✗ Not quite</div><div class="fb-sub muted small">Have another go, or let me show you the steps.</div>`;
+      const foot = el("div", "fb-foot");
+      const again = el("button", "btn primary", "Try again");
+      again.addEventListener("click", () => handlers.onRetry && handlers.onRetry());
+      const show = el("button", "btn ghost", "Show me the steps");
+      show.addEventListener("click", () => {
+        show.remove();
+        handlers.onSteps && handlers.onSteps();
+        let html = "";
+        if (q.answerLabel != null) html += `<div class="fb-answer"><b>Answer:</b> ${q.answerLabel}</div>`;
+        if (Array.isArray(q.solution) && q.solution.length)
+          html += `<div class="sol">` + q.solution.map(s => `<div class="sol-step"><span class="s">${s.s}</span>${s.r ? `<span class="r">${s.r}</span>` : ""}</div>`).join("") + `</div>`;
+        feedback.insertBefore(el("div", "", html), foot);
+      });
+      foot.appendChild(again); foot.appendChild(show);
+      feedback.appendChild(foot);
+      again.focus();
     });
   }
 

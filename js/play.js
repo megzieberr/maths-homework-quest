@@ -36,7 +36,7 @@ export function renderPlay(app, host, params) {
     let seen = false;
     try { seen = localStorage.getItem("mhq.tip.q1hands") === "1"; } catch { /* ignore */ }
     if (!seen) {
-      const tip = el("div", "play-tip", `Hands-on quest: press the keys on the calculator in each step to complete it. Stuck? Tap 💡 Hint.`);
+      const tip = el("div", "play-tip", `Hands-on quest: do each step on the calculator, then tap <b>Check my answer</b>. Stuck? Tap 💡 Hint.`);
       const close = el("button", "tip-close", "Got it");
       const dismiss = () => { tip.remove(); try { localStorage.setItem("mhq.tip.q1hands", "1"); } catch { /* ignore */ } };
       close.addEventListener("click", dismiss);
@@ -58,10 +58,12 @@ export function renderPlay(app, host, params) {
     present();
   }
 
-  function present() {
+  let currentQ = null;
+  function present(regen = true) {
     attempt++;
     const skill = skills[st.i];
-    const q = skill.gen();
+    const q = regen ? skill.gen() : currentQ;  // calcdo "Try again" replays the SAME task (regen=false)
+    currentQ = q;
     window.__Q__ = q;                          // expose current question (debug / headless checks)
     mountQuestion(qhost, q, {
       onResult(ok) {
@@ -80,9 +82,14 @@ export function renderPlay(app, host, params) {
           if (attempt >= 2) logStruggle(skill.concept);     // repeated miss on this skill
         }
       },
+      // calcdo wrong answer: break the streak (and flag a struggle on a repeat miss),
+      // but keep the SAME task — the panel offers Try again / Show me the steps.
+      onWrong() { st.streak = 0; xpPop.className = "xp-pop bad"; xpPop.textContent = "Not quite"; if (attempt >= 2) logStruggle(skill.concept); },
+      onSteps() { logStruggle(skill.concept); },
+      onRetry() { window.scrollTo(0, 0); xpPop.textContent = ""; xpPop.className = "xp-pop"; present(false); },
       onContinue() { st.i++; window.scrollTo(0, 0); (st.i < st.total) ? showSkill() : finish(); },
       onSibling() { window.scrollTo(0, 0); xpPop.textContent = ""; xpPop.className = "xp-pop"; present(); },
-      onLost() { logStruggle(skill.concept); openConcept(skill.concept, () => { window.scrollTo(0, 0); present(); }); },
+      onLost() { logStruggle(skill.concept); openConcept(skill.concept, () => { window.scrollTo(0, 0); present(false); }); },
     });
   }
 
