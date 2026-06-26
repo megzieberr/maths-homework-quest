@@ -115,6 +115,12 @@ export const LocalBackend = {
     if (read(LS.meta, {}).adminPassword !== pw) return { ok: false, error: "auth" };
     const st = read(LS.students, {}); delete st[id]; write(LS.students, st); return { ok: true };
   },
+  async adminResetProgress(pw, id) {
+    if (read(LS.meta, {}).adminPassword !== pw) return { ok: false, error: "auth" };
+    const pr = read(LS.progress, {}); delete pr[id]; write(LS.progress, pr);
+    const sg = read(LS.struggles, {}); delete sg[id]; write(LS.struggles, sg);
+    return { ok: true };
+  },
   async adminResolveStruggle(pw, concept) {
     if (read(LS.meta, {}).adminPassword !== pw) return { ok: false, error: "auth" };
     const all = read(LS.struggles, {}); Object.values(all).forEach(byC => delete byC[concept]); write(LS.struggles, all); return { ok: true };

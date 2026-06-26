@@ -31,6 +31,21 @@ export function renderPlay(app, host, params) {
   mount(screen, top, bar, xpPop, qhost);
   host.appendChild(screen);
 
+  // Quest 1: nudge the learner to open the on-screen calculator (once).
+  if (quest.id === "q1") {
+    let seen = false;
+    try { seen = localStorage.getItem("mhq.tip.q1calc") === "1"; } catch { /* ignore */ }
+    if (!seen) {
+      const tip = el("div", "play-tip", `Tip: tap <button class="tip-calc">🧮</button> any time to open the calculator and try these steps yourself.`);
+      const close = el("button", "tip-close", "Got it");
+      const dismiss = () => { tip.remove(); try { localStorage.setItem("mhq.tip.q1calc", "1"); } catch { /* ignore */ } };
+      tip.querySelector(".tip-calc").addEventListener("click", () => { openCalculator(); });
+      close.addEventListener("click", dismiss);
+      tip.appendChild(close);
+      top.after(tip);
+    }
+  }
+
   const logStruggle = (concept) => { try { api.logStruggle(sess.username, sess.password, concept).catch(() => {}); } catch { /* fire and forget */ } };
 
   const st = { i: 0, firstTry: 0, xp: 0, streak: 0, total: skills.length };

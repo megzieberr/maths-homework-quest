@@ -258,6 +258,16 @@ begin
   return jsonb_build_object('ok', true);
 end; $$;
 
+-- reset scores = wipe progress + struggles but KEEP the account (fresh start)
+create or replace function public.mhq_admin_reset_progress(p_admin_password text, p_id uuid)
+returns jsonb language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if not public._mhq_admin_ok(p_admin_password) then return jsonb_build_object('ok', false, 'error', 'auth'); end if;
+  delete from public.progress  where student_id = p_id;
+  delete from public.struggles where student_id = p_id;
+  return jsonb_build_object('ok', true);
+end; $$;
+
 create or replace function public.mhq_admin_resolve_struggle(p_admin_password text, p_concept text)
 returns jsonb language plpgsql security definer set search_path = public, extensions as $$
 begin
@@ -281,6 +291,7 @@ grant execute on function
   public.mhq_admin_set_quest_open(text, text, boolean),
   public.mhq_admin_reset_password(text, uuid),
   public.mhq_admin_remove_student(text, uuid),
+  public.mhq_admin_reset_progress(text, uuid),
   public.mhq_admin_resolve_struggle(text, text)
 to anon, authenticated;
 

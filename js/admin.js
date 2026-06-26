@@ -118,9 +118,11 @@ function learnerSection(rows, inactiveDays) {
     const act = el("td", "adm-actions");
     const rpw = el("button", "btn ghost small", "Reset pw");
     rpw.addEventListener("click", async () => { if (!confirm(`Reset ${r.name}'s password? They'll set a new one next login (progress kept).`)) return; await api.adminResetPassword(pw, r.id); reload(); });
+    const rsc = el("button", "btn ghost small", "Reset scores");
+    rsc.addEventListener("click", async () => { if (!confirm(`Reset ${r.name}'s scores? This clears their XP, passed quests and struggle flags — the account stays, so they start fresh.`)) return; await api.adminResetProgress(pw, r.id); reload(); });
     const rm = el("button", "btn ghost small danger", "Remove");
     rm.addEventListener("click", async () => { if (!confirm(`Remove ${r.name}? This deletes their progress.`)) return; await api.adminRemoveStudent(pw, r.id); reload(); });
-    act.appendChild(rpw); act.appendChild(rm);
+    act.appendChild(rpw); act.appendChild(rsc); act.appendChild(rm);
     tr.appendChild(act);
     tb.appendChild(tr);
   });

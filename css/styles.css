@@ -152,6 +152,10 @@ h1{font-size:26px} h2{font-size:20px} h3{font-size:17px}
 .pbar{height:7px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;margin-bottom:18px}
 .pbar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 55%,#fff),var(--accent));transition:width .35s}
 
+.play-tip{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;line-height:1.5;color:var(--muted);background:color-mix(in srgb,var(--accent) 10%,transparent);border:1px solid color-mix(in srgb,var(--accent) 28%,transparent);border-radius:12px;padding:9px 12px;margin-bottom:14px}
+.play-tip .tip-calc{font-size:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:1px 6px;cursor:pointer;line-height:1.4}
+.play-tip .tip-close{margin-left:auto;font-family:var(--font-display);font-size:12px;font-weight:600;color:var(--accent);background:none;border:none;cursor:pointer;padding:2px 4px}
+
 .q-prompt{font-size:16px;line-height:1.55;margin-bottom:14px}
 .q-prompt b,.q-prompt .hl{color:var(--accent);font-weight:600}
 .q-graph{background:rgba(255,255,255,.025);border:1px solid var(--brd);border-radius:var(--r-md);padding:12px 10px 8px;margin-bottom:16px}
