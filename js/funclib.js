@@ -170,6 +170,11 @@ const lead = (coef, varStr) => {                       // leading term (no leadi
   const a = Math.abs(coef), co = a === 1 && varStr ? "" : C(a);
   return (coef < 0 ? "−" : "") + co + varStr;
 };
+/* an inline stacked HTML fraction (numerator over a bar over denominator).
+   Used wherever output is rendered as innerHTML (prompts, answer labels). */
+export function frac(num, den) {
+  return `<span class="frac"><span class="fr-n">${num}</span><span class="fr-d">${den}</span></span>`;
+}
 export function eqStr(cv, name = "y") {
   if (cv.kind === "line") {
     const t = `${lead(cv.a, "x")}${cv.q ? " " + term(cv.q, "") : ""}`;
@@ -185,7 +190,7 @@ export function eqStr(cv, name = "y") {
   if (cv.kind === "hyperbola") {
     const denom = cv.p === 0 ? "x" : cv.p > 0 ? `x − ${C(cv.p)}` : `x + ${C(-cv.p)}`;
     const tail = cv.q === 0 ? "" : cv.q > 0 ? ` + ${C(cv.q)}` : ` − ${C(-cv.q)}`;
-    return `${name} = ${neg(C(cv.a))}/(${denom})${tail}`;
+    return `${name} = ${frac(neg(C(cv.a)), denom)}${tail}`;
   }
   if (cv.kind === "exp") {
     const ex = !cv.p ? "x" : cv.p > 0 ? `x − ${C(cv.p)}` : `x + ${C(-cv.p)}`;

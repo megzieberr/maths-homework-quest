@@ -100,6 +100,10 @@ export function renderFunction(spec) {
     if (a.y !== undefined) out += `<line class="fg-asym" x1="${N(X(xmin))}" y1="${N(Y(a.y))}" x2="${N(X(xmax))}" y2="${N(Y(a.y))}"/>`;
   });
 
+  // obstacle boxes the coordinate labels must also dodge (axis letters, curve names)
+  const obstacles = [];
+  const box = (cx, cy, w, h) => [cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2];
+
   // ---- axes with arrowheads + O ----
   const x0px = X(0), y0px = Y(0);
   const showY = xmin <= 0 && xmax >= 0, showX = ymin <= 0 && ymax >= 0;
@@ -108,14 +112,16 @@ export function renderFunction(spec) {
     out += `<path class="fg-arrow" d="M ${N(X(xmax))} ${N(y0px)} l -7 -3.5 l 0 7 z"/>`;
     out += `<path class="fg-arrow" d="M ${N(X(xmin))} ${N(y0px)} l 7 -3.5 l 0 7 z"/>`;
     out += text(X(xmax) - 4, y0px - 9, "x", "fg-axlab");
+    obstacles.push(box(X(xmax) - 4, y0px - 9, 12, 14));
   }
   if (showY) {
     out += `<line class="fg-axis" x1="${N(x0px)}" y1="${N(Y(ymin))}" x2="${N(x0px)}" y2="${N(Y(ymax))}"/>`;
     out += `<path class="fg-arrow" d="M ${N(x0px)} ${N(Y(ymax))} l -3.5 7 l 7 0 z"/>`;
     out += `<path class="fg-arrow" d="M ${N(x0px)} ${N(Y(ymin))} l -3.5 -7 l 7 0 z"/>`;
     out += text(x0px + 9, Y(ymax) + 4, "y", "fg-axlab");
+    obstacles.push(box(x0px + 9, Y(ymax) + 4, 12, 14));
   }
-  if (showX && showY) out += text(x0px - 8, y0px + 10, "O", "fg-axlab");
+  if (showX && showY) { out += text(x0px - 8, y0px + 10, "O", "fg-axlab"); obstacles.push(box(x0px - 8, y0px + 10, 12, 14)); }
 
   // ---- the curves ----
   (spec.curves || []).forEach((cv) => {
@@ -125,8 +131,10 @@ export function renderFunction(spec) {
     });
     if (cv.label && cv.labelAt !== undefined) {
       const f = makeFn(cv), lx = cv.labelAt, ly = f(lx);
-      if (Number.isFinite(ly) && ly >= ymin && ly <= ymax)
+      if (Number.isFinite(ly) && ly >= ymin && ly <= ymax) {
         out += `<text class="fg-flab" x="${N(X(lx) + 10)}" y="${N(Y(ly) - 6)}" text-anchor="middle" dominant-baseline="middle" style="fill:${stroke}">${cv.label}</text>`;
+        obstacles.push(box(X(lx) + 10, Y(ly) - 6, String(cv.label).length * 9 + 4, 16));
+      }
     }
   });
 
@@ -156,7 +164,7 @@ export function renderFunction(spec) {
     out += `<circle class="fg-dot${p.open ? " open" : ""}" cx="${N(px)}" cy="${N(py)}" r="3.2"/>`;
     if (p.label != null) labelReqs.push({ px, py, label: p.label });
   });
-  out += placeLabels(labelReqs, spec, g);
+  out += placeLabels(labelReqs, spec, g, obstacles);
 
   return svgWrap(W, H, spec.accent, out, spec.tap ? "fg-tappable" : "");
 }
@@ -166,7 +174,7 @@ export function renderFunction(spec) {
    candidate positions around its dot and takes the first that stays
    in frame, clear of the curves, and clear of already-placed labels.
    ---------------------------------------------------------------- */
-function placeLabels(reqs, spec, g) {
+function placeLabels(reqs, spec, g, obstacles = []) {
   if (!reqs.length) return "";
   const { W, H, X, Y, win } = g;
   const { xmin, xmax, ymin, ymax } = win;
@@ -185,7 +193,7 @@ function placeLabels(reqs, spec, g) {
   });
 
   const CW = 6.0, CH = 14, GAP = 8, PAD = 2;          // char width, line height, gap, slack
-  const placed = [];
+  const placed = obstacles.slice();                   // axis letters / curve names are pre-occupied
   const candidates = (px, py, w) => [
     { x: px, y: py - 13, a: "middle", bx: px - w / 2 },     // above
     { x: px + GAP, y: py - 13, a: "start", bx: px + GAP },  // above-right
