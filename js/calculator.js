@@ -30,6 +30,10 @@ const KEYS = [
 
 const escapeHtml = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const fmtNum = v => (v == null ? "" : String(Math.round(v * 1e8) / 1e8).replace(".", ","));   // comma decimal (ZA locale, verified on the device)
+/* the mean symbol x̄ — drawn with the bar ABOVE the x (the LCD font won't
+   stack the combining macron, so it lands beside it). Render as an overline. */
+const MEAN_GLYPH = '<span class="lcd-ov">x</span>';
+const lcdShow = s => escapeHtml(s).replace(/x̄/g, MEAN_GLYPH);   // x + combining macron → overlined x
 
 export function mountCalculator(host, opts = {}) {
   // Optional milestone signal — lets the quest engine see when a learner
@@ -136,7 +140,7 @@ export function mountCalculator(host, opts = {}) {
   // STAT menu labels match the device (1:Type 2:Data 3:Sum 4:Var 5:Distr 6:MinMax)
   function varMenu() {
     const parent = S.menu;
-    openMenu({ title: "Var", parent, items: [["1", "n"], ["2", "x̄"], ["3", "σx"], ["4", "sx"]], onNum(n) { pasteStat(["n", "x̄", "σx", "sx"][n - 1]); } });
+    openMenu({ title: "Var", parent, items: [["1", "n"], ["2", MEAN_GLYPH], ["3", "σx"], ["4", "sx"]], onNum(n) { pasteStat(["n", "x̄", "σx", "sx"][n - 1]); } });
   }
   function minMaxMenu() {
     const parent = S.menu;
@@ -233,7 +237,7 @@ export function mountCalculator(host, opts = {}) {
     ind.textContent = tags.join("   ");
 
     if (S.screen === "comp") {
-      main.innerHTML = `<div class="lcd-expr">${escapeHtml(S.line || "")}</div><div class="lcd-res">${S.result != null ? escapeHtml(S.result) : (S.line ? "" : "0")}</div>`;
+      main.innerHTML = `<div class="lcd-expr">${lcdShow(S.line || "")}</div><div class="lcd-res">${S.result != null ? escapeHtml(S.result) : (S.line ? "" : "0")}</div>`;
     } else if (S.screen === "menu") {
       const m = S.menu;
       let html = m.title ? `<div class="lcd-title">${m.title}</div>` : "";
