@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2D Trigonometry · verification</title>
+<link rel="stylesheet" href="./css/styles.css">
+<style>
+  body{font-family:"JetBrains Mono",monospace;padding:24px;max-width:1100px;margin:0 auto}
+  #banner{font-weight:700;font-size:18px;padding:14px 18px;border-radius:14px;margin:14px 0 22px;border:1px solid var(--brd)}
+  #banner.pass{background:var(--good-bg);color:var(--good)} #banner.fail{background:var(--bad-bg);color:var(--bad)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+  .card{background:rgba(255,255,255,.03);border:1px solid var(--brd);border-radius:14px;padding:12px}
+  .card h3{font-size:13px;margin-bottom:6px}
+  .checks{list-style:none;font-size:11px;line-height:1.5;margin-top:8px}
+  .checks li.ok{color:var(--good)} .checks li.bad{color:var(--bad)}
+  pre{white-space:pre-wrap;font-size:12px;color:var(--muted);background:rgba(255,255,255,.03);padding:12px;border-radius:10px;border:1px solid var(--brd)}
+  h2{font-size:15px;margin:22px 0 10px}
+</style>
+</head>
+<body>
+<h1 style="font-family:'Space Grotesk',sans-serif">2D Trigonometry · verification</h1>
+<div id="banner">running…</div>
+
+<h2>Triangle engine — every figure re-derives its own scale & angles</h2>
+<div class="grid" id="engine"></div>
+
+<h2>Quests — 7 quests, fresh-number generations</h2>
+<pre id="quests">…</pre>
+
+<script type="module">
+import { renderTriangle, verifyTriangle } from "./js/engine/triangle-graph.js";
+import { placeTri, houseFigure, regularPolygonFigure } from "./js/quests/_trig.js";
+import { footOfPerp } from "./js/triglib.js";
+import { questDef } from "./js/quests/index.js";
+import { CHAPTERS } from "./js/config.js";
+import { getConcept } from "./js/concepts.js";
+import { answerCorrect } from "./js/check.js";
+
+const ACC = "#0ea5e9";
+let total = 0, passed = 0; const fails = [];
+const tick = (cond, label) => { total++; if (cond) passed++; else fails.push(label); return cond; };
+
+/* ---------- 1) representative engine figures ---------- */
+const aas = placeTri({ angles: { A: 40, B: 70 }, sides: { a: 12 } }, ["A", "B", "C"], 15);
+const sas = placeTri({ sides: { b: 12, c: 10 }, angles: { A: 125 } }, ["A", "B", "C"], -12);
+const sss = placeTri({ sides: { a: 13, b: 10, c: 9 } }, ["A", "B", "C"], 20);
+const alt = (() => {
+  const t = placeTri({ sides: { b: 14, c: 13 }, angles: { A: 64 } }, ["A", "B", "C"], 10);
+  const F = footOfPerp(t.pts.A, t.pts.B, t.pts.C);
+  return { type: "triangle", accent: ACC, pts: { ...t.pts, F }, poly: ["A", "B", "C"],
+    angles: [{ at: "A", label: "64°" }, { at: "F", right: true, between: ["A", "B"] }],
+    sides: [{ from: "A", to: "C", label: "14" }, { from: "A", to: "B", label: "13" }],
+    segs: [{ from: "A", to: "F", dash: true }] };
+})();
+
+const ENGINE = [
+  { title: "Sine rule (AAS): 40°, 70°, side 12", spec: {
+    type: "triangle", accent: ACC, pts: aas.pts, poly: aas.poly,
+    angles: [aas.angle("A", "40°"), aas.angle("B", "70°")],
+    sides: [aas.side("B", "C", "12"), aas.side("A", "C", "x")] } },
+  { title: "Cosine rule (SAS): 12, 10, 125°", spec: {
+    type: "triangle", accent: ACC, pts: sas.pts, poly: sas.poly,
+    angles: [sas.angle("A", "125°")],
+    sides: [sas.side("A", "C", "12"), sas.side("A", "B", "10"), sas.side("B", "C", "x")] } },
+  { title: "Cosine rule (SSS): 13, 10, 9", spec: {
+    type: "triangle", accent: ACC, pts: sss.pts, poly: sss.poly,
+    angles: [sss.angle("A", "θ")],
+    sides: [sss.side("B", "C", "13"), sss.side("A", "C", "10"), sss.side("A", "B", "9")] } },
+  { title: "Shortest distance (altitude + right angle)", spec: alt },
+  { title: "House figure (rectangle + roof)", spec: houseFigure(7, 105, 7, ACC).graph },
+  { title: "Regular octagon (side 12)", spec: regularPolygonFigure(8, 12, ACC) },
+  { title: "Regular pentagon (side 10)", spec: regularPolygonFigure(5, 10, ACC) },
+];
+const eg = document.getElementById("engine");
+ENGINE.forEach(t => {
+  const checks = verifyTriangle(t.spec);
+  checks.forEach(c => tick(c.ok, `${t.title}: ${c.label}`));
+  const card = document.createElement("div");
+  card.className = "card";
+  card.style.setProperty("--accent", ACC);
+  card.innerHTML = `<h3>${t.title}</h3><div>${renderTriangle(t.spec)}</div>
+    <ul class="checks">${checks.map(c => `<li class="${c.ok ? "ok" : "bad"}">${c.ok ? "✓" : "✗"} ${c.label}</li>`).join("")}</ul>`;
+  eg.appendChild(card);
+});
+
+/* ---------- 2) quests: generate each skill many times and validate ---------- */
+const trigChapter = CHAPTERS.find(c => c.id === "trig");
+const RUNS = 120;
+const lines = [];
+let qTotalChecks = 0, qFails = 0;
+
+function checkGraph(g) {
+  if (!g) return true;
+  if (g.type === "triangle") return verifyTriangle(g).every(c => c.ok);
+  return true;
+}
+
+trigChapter.quests.forEach(qmeta => {
+  const def = questDef(qmeta.id);
+  const skillIssues = {};
+  def.skills.forEach(skill => {
+    if (!getConcept(skill.concept)) { skillIssues[skill.id] = `missing concept "${skill.concept}"`; }
+    for (let i = 0; i < RUNS; i++) {
+      let q;
+      try { q = skill.gen(); }
+      catch (e) { skillIssues[skill.id] = "threw: " + e.message; break; }
+      qTotalChecks++;
+      if (q.concept && !getConcept(q.concept)) { skillIssues[skill.id] = `q.concept "${q.concept}" not found`; qFails++; }
+      if (q.type === "mc" || q.type === "reason") {
+        const labels = q.options.map(o => o.label);
+        const corrects = q.options.filter(o => o.correct).length;
+        const dupes = labels.length !== new Set(labels).size;
+        if (corrects !== 1) { skillIssues[skill.id] = `has ${corrects} correct options`; qFails++; }
+        if (dupes) { skillIssues[skill.id] = `duplicate option labels: ${labels.join(" | ")}`; qFails++; }
+        if (q.options.length < 2) { skillIssues[skill.id] = "too few options"; qFails++; }
+      } else if (q.type === "calc") {
+        if (!Number.isFinite(q.expected)) { skillIssues[skill.id] = "non-finite expected"; qFails++; }
+        else if (!answerCorrect(q.expected, q.expected, { dp: q.dp, tol: q.tol })) { skillIssues[skill.id] = "expected fails its own check"; qFails++; }
+      } else if (q.type === "yesno") {
+        if (typeof q.yes !== "boolean") { skillIssues[skill.id] = "q.yes not boolean"; qFails++; }
+      } else if (q.type === "tap") {
+        const ids = (q.tap.targets || []);
+        if (!ids.includes(q.tap.correctId)) { skillIssues[skill.id] = "correctId not in targets"; qFails++; }
+      }
+      if (!checkGraph(q.graph)) { skillIssues[skill.id] = "graph not to scale"; qFails++; }
+    }
+  });
+  const bad = Object.keys(skillIssues);
+  tick(bad.length === 0, `${qmeta.id} ${qmeta.title}`);
+  lines.push(`${bad.length === 0 ? "✓" : "✗"} ${qmeta.id}  ${qmeta.title}  (${def.skills.length} skills × ${RUNS})`
+    + (bad.length ? "\n    " + bad.map(b => `${b}: ${skillIssues[b]}`).join("\n    ") : ""));
+});
+
+document.getElementById("quests").textContent =
+  `${qTotalChecks} generations checked · ${qFails} integrity failures\n\n` + lines.join("\n");
+
+const banner = document.getElementById("banner");
+const ok = passed === total && qFails === 0;
+banner.className = ok ? "pass" : "fail";
+banner.textContent = ok
+  ? `✓ ALL GOOD — ${passed}/${total} engine/quest checks passed, ${qTotalChecks} generations clean`
+  : `✗ ${total - passed} check group(s) failed; ${qFails} generation failures — see below`;
+
+window.__VERIFY__ = { total, passed, qTotalChecks, qFails, ok, fails };
+console.log(`[verify-trig] engine&quest ${passed}/${total}, generations ${qTotalChecks}, failures ${qFails} — ${ok ? "OK" : "FAIL"}`);
+if (fails.length) console.log("FAILS:\n" + fails.join("\n"));
+</script>
+</body>
+</html>

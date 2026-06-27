@@ -25,6 +25,12 @@ const PROB_SHADES = [
   "#db2777", "#be185d", "#9d174d",
 ];
 
+/* seven sky-blue shades, light → deep (Trigonometry quests 1 → 7) */
+const TRIG_SHADES = [
+  "#7dd3fc", "#38bdf8", "#0ea5e9", "#0d8fce",
+  "#0284c7", "#0369a1", "#075985",
+];
+
 export const CHAPTERS = [
   {
     id: "stats", name: "Statistics", paper: "Paper 2", icon: "📊",
@@ -69,8 +75,21 @@ export const CHAPTERS = [
       { id: "p7", n: 7, title: "With & without replacement", blurb: "When the denominators stay the same — and when they drop.", built: true },
     ],
   },
+  {
+    id: "trig", name: "2D Trigonometry", paper: "Paper 2", icon: "📐",
+    hue: TRIG_SHADES, signature: "#0ea5e9", open: true,
+    blurb: "Sine, cosine and area rules — solving any triangle, drawn to scale.",
+    quests: [
+      { id: "t1", n: 1, title: "Which rule fits?", blurb: "Label the friends; choose sine, cosine or area for the given case.", built: true },
+      { id: "t2", n: 2, title: "Sine rule: sides", blurb: "Two angles and a side → find a missing side.", built: true },
+      { id: "t3", n: 3, title: "Sine rule: angles & the ambiguous case", blurb: "Find an angle, and when two triangles are possible.", built: true },
+      { id: "t4", n: 4, title: "Cosine rule: sides", blurb: "Two sides and the included angle → the third side.", built: true },
+      { id: "t5", n: 5, title: "Cosine rule: angles", blurb: "All three sides → any angle, acute or obtuse.", built: true },
+      { id: "t6", n: 6, title: "Area rule", blurb: "Triangles, quadrilaterals and regular polygons.", built: true },
+      { id: "t7", n: 7, title: "Mixed problems", blurb: "Pick the rule, combine steps, shortest-distance and area.", built: true },
+    ],
+  },
   // future chapters appear as locked "coming soon" blocks on the hub
-  { id: "trig", name: "Trigonometry", paper: "Paper 2", icon: "📐", signature: "#38bdf8", open: false, comingSoon: true },
   { id: "analytical", name: "Analytical Geometry", paper: "Paper 2", icon: "📈", signature: "#34d399", open: false, comingSoon: true },
 ];
 

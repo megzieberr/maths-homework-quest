@@ -19,6 +19,7 @@ import { renderGraph, computeBox } from "./engine/stats-graph.js";
 import { renderTimeline, computeTimeline } from "./engine/timeline-graph.js";
 import { renderVenn, computeVenn } from "./engine/venn-graph.js";
 import { renderTree, computeTree } from "./engine/tree-graph.js";
+import { renderTriangle, computeTriangle } from "./engine/triangle-graph.js";
 import { mountKeypad } from "./keypad.js";
 import { mountCalculator } from "./calculator.js";
 import { answerCorrect, fmtComma } from "./check.js";
@@ -39,6 +40,7 @@ export function mountQuestion(host, q, handlers = {}) {
       q.graph.type === "timeline" ? renderTimeline(q.graph) :
       q.graph.type === "venn"     ? renderVenn(q.graph) :
       q.graph.type === "tree"     ? renderTree(q.graph) :
+      q.graph.type === "triangle" ? renderTriangle(q.graph) :
       renderGraph(q.graph);
     gw.innerHTML = svg + (q.graphCap ? `<div class="cap">${q.graphCap}</div>` : "");
     svgNode = gw.querySelector("svg");
@@ -227,6 +229,14 @@ export function mountQuestion(host, q, handlers = {}) {
     });
   }
 
+  else if (q.type === "tap" && svgNode && q.graph && q.graph.type === "triangle") {
+    if (q.tapHint) inputHost.appendChild(el("p", "q-tap-hint", q.tapHint));
+    addTriangleHits(svgNode, computeTriangle(q.graph), q.tap, (id) => {
+      if (answered) return;
+      commit(id === q.tap.correctId, id);
+    });
+  }
+
   else if (q.type === "tap" && svgNode) {
     if (q.tapHint) inputHost.appendChild(el("p", "q-tap-hint", q.tapHint));
     addBoxHits(svgNode, computeBox(q.graph), q.tap, (id) => {
@@ -316,6 +326,35 @@ function addVennHits(svg, geo, tap, onPick) {
       });
       if (id !== tap.correctId) node.classList.add("show-wrong");
       onPick(id);
+    });
+    svg.appendChild(node);
+  });
+}
+
+/* ------------------------------------------------------------
+   Tappable triangle parts. mode "vertex": a hot-spot on each named
+   vertex (id = vertex name). mode "side": a hot-spot at each side's
+   midpoint (id = "AB" style, from the outline order). Geometry comes
+   straight from the engine so the tap target is always on the shape.
+   ------------------------------------------------------------ */
+function addTriangleHits(svg, geo, tap, onPick) {
+  const mode = tap.mode || "vertex";
+  const spots = [];
+  if (mode === "vertex") {
+    (tap.targets || geo.poly).forEach(id => { if (geo.P[id]) spots.push({ id, x: geo.P[id].x, y: geo.P[id].y }); });
+  } else {
+    (tap.targets || Object.keys(geo.sideMids)).forEach(id => { if (geo.sideMids[id]) spots.push({ id, x: geo.sideMids[id].x, y: geo.sideMids[id].y }); });
+  }
+  spots.forEach(sp => {
+    const node = svgEl("circle", { cx: sp.x, cy: sp.y, r: 18, class: "hit", "data-id": sp.id });
+    node.addEventListener("click", () => {
+      if (node.classList.contains("locked")) return;
+      svg.querySelectorAll(".hit").forEach(h => {
+        h.classList.add("locked");
+        if (h.dataset.id === tap.correctId) h.classList.add("show-correct");
+      });
+      if (sp.id !== tap.correctId) node.classList.add("show-wrong");
+      onPick(sp.id);
     });
     svg.appendChild(node);
   });

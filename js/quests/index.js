@@ -22,6 +22,13 @@ import { questP4 } from "./questp4-rules.js";
 import { questP5 } from "./questp5-independence.js";
 import { questP6 } from "./questp6-trees.js";
 import { questP7 } from "./questp7-replacement.js";
+import { questT1 } from "./questt1-choose.js";
+import { questT2 } from "./questt2-sine-sides.js";
+import { questT3 } from "./questt3-sine-angles.js";
+import { questT4 } from "./questt4-cosine-sides.js";
+import { questT5 } from "./questt5-cosine-angles.js";
+import { questT6 } from "./questt6-area.js";
+import { questT7 } from "./questt7-mixed.js";
 
 export const QUEST_DEFS = {
   q1: quest01, q2: quest02, q3: quest03, q4: quest04,
@@ -30,5 +37,7 @@ export const QUEST_DEFS = {
   f5: questF5, f6: questF6, f7: questF7,
   p1: questP1, p2: questP2, p3: questP3, p4: questP4,
   p5: questP5, p6: questP6, p7: questP7,
+  t1: questT1, t2: questT2, t3: questT3, t4: questT4,
+  t5: questT5, t6: questT6, t7: questT7,
 };
 export function questDef(id) { return QUEST_DEFS[id] || null; }
