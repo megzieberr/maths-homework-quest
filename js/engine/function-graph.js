@@ -146,19 +146,73 @@ export function renderFunction(spec) {
   }
 
   // ---- marked points (intercepts / TP / intersections) ----
+  // draw the dots + drop-lines first, then place the labels so they dodge the
+  // curves and each other (no more coordinates sitting on top of the graph).
+  const labelReqs = [];
   (spec.points || []).forEach((p) => {
     const px = X(p.x), py = Y(p.y);
     if (p.dashTo === "x" || p.dashTo === "both") out += `<line class="fg-drop" x1="${N(px)}" y1="${N(py)}" x2="${N(px)}" y2="${N(Y(0))}"/>`;
     if (p.dashTo === "y" || p.dashTo === "both") out += `<line class="fg-drop" x1="${N(px)}" y1="${N(py)}" x2="${N(X(0))}" y2="${N(py)}"/>`;
     out += `<circle class="fg-dot${p.open ? " open" : ""}" cx="${N(px)}" cy="${N(py)}" r="3.2"/>`;
-    if (p.label != null) {
-      const ax = p.lx != null ? p.lx : px + 9;
-      const ay = p.ly != null ? p.ly : py - 9;
-      out += text(ax, ay, p.label, "fg-plab", p.anchor || "middle");
+    if (p.label != null) labelReqs.push({ px, py, label: p.label });
+  });
+  out += placeLabels(labelReqs, spec, g);
+
+  return svgWrap(W, H, spec.accent, out, spec.tap ? "fg-tappable" : "");
+}
+
+/* ----------------------------------------------------------------
+   Greedy label placement: each coordinate label tries a ring of
+   candidate positions around its dot and takes the first that stays
+   in frame, clear of the curves, and clear of already-placed labels.
+   ---------------------------------------------------------------- */
+function placeLabels(reqs, spec, g) {
+  if (!reqs.length) return "";
+  const { W, H, X, Y, win } = g;
+  const { xmin, xmax, ymin, ymax } = win;
+
+  // sample every curve into pixel points (to test label-over-curve overlap)
+  const cpts = [];
+  (spec.curves || []).forEach((cv) => {
+    const f = makeFn(cv), STEPS = 150, dx = (xmax - xmin) / STEPS;
+    for (let i = 0; i <= STEPS; i++) {
+      const x = xmin + i * dx;
+      if (cv.kind === "hyperbola" && Math.abs(x - cv.p) < dx) continue;
+      const y = f(x);
+      if (!Number.isFinite(y) || y < ymin || y > ymax) continue;
+      cpts.push({ x: X(x), y: Y(y) });
     }
   });
 
-  return svgWrap(W, H, spec.accent, out, spec.tap ? "fg-tappable" : "");
+  const CW = 6.0, CH = 14, GAP = 8, PAD = 2;          // char width, line height, gap, slack
+  const placed = [];
+  const candidates = (px, py, w) => [
+    { x: px, y: py - 13, a: "middle", bx: px - w / 2 },     // above
+    { x: px + GAP, y: py - 13, a: "start", bx: px + GAP },  // above-right
+    { x: px - GAP, y: py - 13, a: "end", bx: px - GAP - w },// above-left
+    { x: px + GAP, y: py, a: "start", bx: px + GAP },       // right
+    { x: px - GAP, y: py, a: "end", bx: px - GAP - w },     // left
+    { x: px, y: py + 14, a: "middle", bx: px - w / 2 },     // below
+    { x: px + GAP, y: py + 14, a: "start", bx: px + GAP },  // below-right
+    { x: px - GAP, y: py + 14, a: "end", bx: px - GAP - w },// below-left
+  ].map((o) => ({ ...o, box: [o.bx, o.y - CH / 2, o.bx + w, o.y + CH / 2] }));
+
+  const inFrame = (b) => b[0] >= 2 && b[2] <= W - 2 && b[1] >= 2 && b[3] <= H - 2;
+  const overBoxes = (b) => placed.some((q) => !(b[2] < q[0] || b[0] > q[2] || b[3] < q[1] || b[1] > q[3]));
+  const overCurve = (b) => cpts.some((p) => p.x >= b[0] - PAD && p.x <= b[2] + PAD && p.y >= b[1] - PAD && p.y <= b[3] + PAD);
+
+  let out = "";
+  reqs.forEach((r) => {
+    const w = r.label.length * CW;
+    const opts = candidates(r.px, r.py, w);
+    const chosen =
+      opts.find((o) => inFrame(o.box) && !overCurve(o.box) && !overBoxes(o.box)) ||
+      opts.find((o) => inFrame(o.box) && !overBoxes(o.box)) ||
+      opts.find((o) => inFrame(o.box)) || opts[0];
+    placed.push(chosen.box);
+    out += text(chosen.x, chosen.y, r.label, "fg-plab", chosen.a);
+  });
+  return out;
 }
 
 /* ============================================================

@@ -192,7 +192,7 @@ export function eqStr(cv, name = "y") {
     const tail = cv.q === 0 ? "" : cv.q > 0 ? ` + ${C(cv.q)}` : ` − ${C(-cv.q)}`;
     const base = Number.isInteger(cv.b) ? C(cv.b) : `(${C(cv.b)})`;
     const co = cv.a === 1 ? "" : cv.a === -1 ? "−" : C(cv.a) + "·";
-    return `${name} = ${co}${base}^(${ex})${tail}`;
+    return `${name} = ${co}${base}<sup>${ex}</sup>${tail}`;
   }
   return `${name} = ?`;
 }
