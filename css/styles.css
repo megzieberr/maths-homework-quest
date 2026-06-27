@@ -301,6 +301,28 @@ h1{font-size:26px} h2{font-size:20px} h3{font-size:17px}
 .tl-arclab{font-size:10px;font-weight:700;fill:var(--accent)}
 .tl-title{font-size:10px;fill:var(--g-muted)}
 
+/* venn engine (.vn-*) — accent fills sit UNDER the outlines at low opacity */
+.vn{width:100%;height:auto;display:block;font-family:var(--font-num)}
+.vn [fill="var(--accent)"]{opacity:.30}
+.vn-rect{fill:rgba(255,255,255,.02);stroke:var(--g-axis);stroke-width:1.4}
+.vn-circle{fill:none;stroke:var(--accent);stroke-width:2}
+.vn-slab{font-size:10.5px;fill:var(--g-muted);font-weight:700}
+.vn-name{font-size:12px;fill:var(--accent);font-weight:700}
+.vn-reg{font-size:11px;fill:var(--g-ink);font-weight:600}
+.vn-tappable .vn-reg{pointer-events:none}
+
+/* tree engine (.tr-*) */
+.tr{width:100%;height:auto;display:block;font-family:var(--font-num)}
+.tr-branch{stroke:var(--g-axis);stroke-width:1.5}
+.tr-branch.hot{stroke:var(--accent);stroke-width:2.6}
+.tr-node{fill:color-mix(in srgb,var(--accent) 22%,var(--bg2));stroke:var(--accent);stroke-width:1.6}
+.tr-node.tr-root{r:5;fill:var(--accent)}
+.tr-node.leaf.hot{fill:var(--accent)}
+.tr-nlab{font-size:11px;font-weight:700;fill:var(--g-ink)}
+.tr-p{font-size:10px;fill:var(--g-muted);font-weight:600}
+.tr-out{font-size:11.5px;fill:var(--g-ink);font-weight:700}
+.tr-prod{font-size:10px;fill:var(--g-muted);font-weight:500}
+
 /* ============================================================
    IN-APP CALCULATOR (Casio fx-991ZA Plus II replica)
    ============================================================ */

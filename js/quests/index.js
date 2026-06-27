@@ -15,11 +15,20 @@ import { questF4 } from "./questf4-timeline-count.js";
 import { questF5 } from "./questf5-timeline-build.js";
 import { questF6 } from "./questf6-deposits.js";
 import { questF7 } from "./questf7-eff-nom.js";
+import { questP1 } from "./questp1-basics.js";
+import { questP2 } from "./questp2-venn-regions.js";
+import { questP3 } from "./questp3-venn-prob.js";
+import { questP4 } from "./questp4-rules.js";
+import { questP5 } from "./questp5-independence.js";
+import { questP6 } from "./questp6-trees.js";
+import { questP7 } from "./questp7-replacement.js";
 
 export const QUEST_DEFS = {
   q1: quest01, q2: quest02, q3: quest03, q4: quest04,
   q5: quest05, q6: quest06, q7: quest07, q8: quest08,
   f1: questF1, f2: questF2, f3: questF3, f4: questF4,
   f5: questF5, f6: questF6, f7: questF7,
+  p1: questP1, p2: questP2, p3: questP3, p4: questP4,
+  p5: questP5, p6: questP6, p7: questP7,
 };
 export function questDef(id) { return QUEST_DEFS[id] || null; }

@@ -17,6 +17,8 @@
 import { el, clear } from "./ui.js";
 import { renderGraph, computeBox } from "./engine/stats-graph.js";
 import { renderTimeline, computeTimeline } from "./engine/timeline-graph.js";
+import { renderVenn, computeVenn } from "./engine/venn-graph.js";
+import { renderTree, computeTree } from "./engine/tree-graph.js";
 import { mountKeypad } from "./keypad.js";
 import { mountCalculator } from "./calculator.js";
 import { answerCorrect, fmtComma } from "./check.js";
@@ -33,7 +35,11 @@ export function mountQuestion(host, q, handlers = {}) {
   let svgNode = null;
   if (q.graph) {
     const gw = el("div", "q-graph");
-    const svg = q.graph.type === "timeline" ? renderTimeline(q.graph) : renderGraph(q.graph);
+    const svg =
+      q.graph.type === "timeline" ? renderTimeline(q.graph) :
+      q.graph.type === "venn"     ? renderVenn(q.graph) :
+      q.graph.type === "tree"     ? renderTree(q.graph) :
+      renderGraph(q.graph);
     gw.innerHTML = svg + (q.graphCap ? `<div class="cap">${q.graphCap}</div>` : "");
     svgNode = gw.querySelector("svg");
     root.appendChild(gw);
@@ -205,6 +211,22 @@ export function mountQuestion(host, q, handlers = {}) {
     });
   }
 
+  else if (q.type === "tap" && svgNode && q.graph && q.graph.type === "venn") {
+    if (q.tapHint) inputHost.appendChild(el("p", "q-tap-hint", q.tapHint));
+    addVennHits(svgNode, computeVenn(q.graph), q.tap, (id) => {
+      if (answered) return;
+      commit(id === q.tap.correctId, id);
+    });
+  }
+
+  else if (q.type === "tap" && svgNode && q.graph && q.graph.type === "tree") {
+    if (q.tapHint) inputHost.appendChild(el("p", "q-tap-hint", q.tapHint));
+    addTreeHits(svgNode, computeTree(q.graph), q.tap, (id) => {
+      if (answered) return;
+      commit(id === q.tap.correctId, id);
+    });
+  }
+
   else if (q.type === "tap" && svgNode) {
     if (q.tapHint) inputHost.appendChild(el("p", "q-tap-hint", q.tapHint));
     addBoxHits(svgNode, computeBox(q.graph), q.tap, (id) => {
@@ -269,6 +291,54 @@ function addTimelineHits(svg, geo, tap, onPick) {
       });
       if (n.t !== tap.correctId) node.classList.add("show-wrong");
       onPick(n.t);
+    });
+    svg.appendChild(node);
+  });
+}
+
+/* ------------------------------------------------------------
+   Tappable Venn regions. Each region gets a circular hot-spot at
+   the region's label anchor (verify guarantees that anchor is
+   inside the correct region, so a tap is unambiguous). id = region.
+   ------------------------------------------------------------ */
+function addVennHits(svg, geo, tap, onPick) {
+  const targets = tap.targets || (geo.one ? ["inside", "out"] : ["onlyA", "inter", "onlyB", "outside"]);
+  const R = 22;
+  targets.forEach(id => {
+    const a = geo.anchors[id];
+    if (!a) return;
+    const node = svgEl("circle", { cx: a.x, cy: a.y, r: R, class: "hit", "data-id": id });
+    node.addEventListener("click", () => {
+      if (node.classList.contains("locked")) return;
+      svg.querySelectorAll(".hit").forEach(h => {
+        h.classList.add("locked");
+        if (h.dataset.id === tap.correctId) h.classList.add("show-correct");
+      });
+      if (id !== tap.correctId) node.classList.add("show-wrong");
+      onPick(id);
+    });
+    svg.appendChild(node);
+  });
+}
+
+/* ------------------------------------------------------------
+   Tappable tree leaves. Each leaf (one full outcome path) gets a
+   clickable row band; id is the leaf index.
+   ------------------------------------------------------------ */
+function addTreeHits(svg, geo, tap, onPick) {
+  const targets = tap.targets || geo.leaves.map((_, i) => i);
+  const h = geo.rowH;
+  geo.leaves.forEach((lf, i) => {
+    if (!targets.includes(i)) return;
+    const node = svgEl("rect", { x: lf.x - 14, y: lf.y - h / 2 + 2, width: geo.W - (lf.x - 14) - 4, height: h - 4, rx: 6, class: "hit", "data-id": String(i) });
+    node.addEventListener("click", () => {
+      if (node.classList.contains("locked")) return;
+      svg.querySelectorAll(".hit").forEach(hh => {
+        hh.classList.add("locked");
+        if (Number(hh.dataset.id) === tap.correctId) hh.classList.add("show-correct");
+      });
+      if (i !== tap.correctId) node.classList.add("show-wrong");
+      onPick(i);
     });
     svg.appendChild(node);
   });

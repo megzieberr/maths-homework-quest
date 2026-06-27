@@ -306,7 +306,10 @@ insert into public.quests (quest_id, chapter, is_open, sort) values
   ('q7','stats',false,7), ('q8','stats',false,8),
   ('f1','finance',false, 9), ('f2','finance',false,10), ('f3','finance',false,11),
   ('f4','finance',false,12), ('f5','finance',false,13), ('f6','finance',false,14),
-  ('f7','finance',false,15)
+  ('f7','finance',false,15),
+  ('p1','prob',false,16), ('p2','prob',false,17), ('p3','prob',false,18),
+  ('p4','prob',false,19), ('p5','prob',false,20), ('p6','prob',false,21),
+  ('p7','prob',false,22)
 on conflict (quest_id) do nothing;
 
 insert into public.app_config (key, value) values ('admin_password', crypt('admin', gen_salt('bf')))

@@ -19,6 +19,12 @@ const FIN_SHADES = [
   "#e08708", "#cf7506", "#b8650a",
 ];
 
+/* seven fuchsia/pink shades, light → deep (Probability quests 1 → 7) */
+const PROB_SHADES = [
+  "#f9a8d4", "#f472b6", "#ec4899", "#e22a86",
+  "#db2777", "#be185d", "#9d174d",
+];
+
 export const CHAPTERS = [
   {
     id: "stats", name: "Statistics", paper: "Paper 2", icon: "📊",
@@ -47,6 +53,20 @@ export const CHAPTERS = [
       { id: "f5", n: 5, title: "Timelines: building the move", blurb: "× or ÷, the exponent's sign, and rate changes.", built: true },
       { id: "f6", n: 6, title: "Deposits & hire purchase", blurb: "The deposit and what's still owed.", built: true },
       { id: "f7", n: 7, title: "Effective vs nominal", blurb: "Annual vs a frequency, and the conversion formula.", built: true },
+    ],
+  },
+  {
+    id: "prob", name: "Probability", paper: "Paper 1", icon: "🎲",
+    hue: PROB_SHADES, signature: "#ec4899", open: true,
+    blurb: "Chance, Venn diagrams, tree diagrams and the rules that tie them together.",
+    quests: [
+      { id: "p1", n: 1, title: "Chance & the scale", blurb: "Sample space, theoretical probability, relative frequency.", built: true },
+      { id: "p2", n: 2, title: "Venn diagrams: regions", blurb: "∩, ∪, complement and the regions of a Venn diagram.", built: true },
+      { id: "p3", n: 3, title: "Venn diagrams: probabilities", blurb: "Sort outcomes into regions and read probabilities off.", built: true },
+      { id: "p4", n: 4, title: "The probability rules", blurb: "Addition rule, complement, mutually exclusive vs inclusive.", built: true },
+      { id: "p5", n: 5, title: "Independent events", blurb: "The product rule, the test, and contingency tables.", built: true },
+      { id: "p6", n: 6, title: "Tree diagrams", blurb: "Multiply along a path, add paths, ‘at least one’.", built: true },
+      { id: "p7", n: 7, title: "With & without replacement", blurb: "When the denominators stay the same — and when they drop.", built: true },
     ],
   },
   // future chapters appear as locked "coming soon" blocks on the hub

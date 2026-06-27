@@ -8,10 +8,12 @@ const read = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; 
 const write = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
 const QUEST_IDS = ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8",
-  "f1", "f2", "f3", "f4", "f5", "f6", "f7"];
-/* offline sandbox opens stats q1–q3 and all Finance quests so the whole new
-   chapter is playable locally; on the live backend the teacher opens each. */
-const DEFAULT_OPEN = ["q1", "q2", "q3", "f1", "f2", "f3", "f4", "f5", "f6", "f7"];
+  "f1", "f2", "f3", "f4", "f5", "f6", "f7",
+  "p1", "p2", "p3", "p4", "p5", "p6", "p7"];
+/* offline sandbox opens stats q1–q3 and all Finance + Probability quests so the
+   whole new chapter is playable locally; on the live backend the teacher opens each. */
+const DEFAULT_OPEN = ["q1", "q2", "q3", "f1", "f2", "f3", "f4", "f5", "f6", "f7",
+  "p1", "p2", "p3", "p4", "p5", "p6", "p7"];
 
 function seed() {
   if (!read(LS.students, null)) write(LS.students, {});
