@@ -52,7 +52,7 @@ export function computeVenn(spec) {
     circles = { A: { cx, cy, r } };
     anchors = {
       inside: { x: cx, y: cy },
-      out:    { x: rectX + 20, y: rectY + 18 },
+      out:    { x: (rectX + (cx - r)) / 2, y: cy },   // centred in the gap left of the circle
       A:      { x: cx, y: cy - r - 0 },     // name tag drawn just inside the top
     };
   } else {
