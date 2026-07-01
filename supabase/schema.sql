@@ -329,7 +329,10 @@ insert into public.quests (quest_id, chapter, is_open, sort) values
   ('np7','pat',false,63),
   ('es1','exp',false,64), ('es2','exp',false,65), ('es3','exp',false,66),
   ('es4','exp',false,67), ('es5','exp',false,68), ('es6','exp',false,69),
-  ('es7','exp',false,70), ('es8','exp',false,71)
+  ('es7','exp',false,70), ('es8','exp',false,71),
+  ('eq1','eqn',false,72), ('eq2','eqn',false,73), ('eq3','eqn',false,74),
+  ('eq4','eqn',false,75), ('eq5','eqn',false,76), ('eq6','eqn',false,77),
+  ('eq7','eqn',false,78), ('eq8','eqn',false,79)
 on conflict (quest_id) do nothing;
 
 insert into public.app_config (key, value) values ('admin_password', crypt('admin', gen_salt('bf')))

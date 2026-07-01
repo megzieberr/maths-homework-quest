@@ -62,6 +62,12 @@ const EXP_SHADES = [
   "#c81e3a", "#be123c", "#9f1239", "#881337",
 ];
 
+/* eight emerald shades, light → deep (Equations & Inequalities quests 1 → 8) */
+const EQN_SHADES = [
+  "#6ee7b7", "#34d399", "#10b981", "#0ca678",
+  "#059669", "#047857", "#065f46", "#064e3b",
+];
+
 export const CHAPTERS = [
   {
     id: "stats", name: "Statistics", paper: "Paper 2", icon: "📊", term: "term3",
@@ -203,6 +209,21 @@ export const CHAPTERS = [
       { id: "es6", n: 6, title: "Conjugates & rationalising", blurb: "What the conjugate is, why it works, rationalising one- and two-term denominators, the a + b√c form.", built: true },
       { id: "es7", n: 7, title: "Rational-exponent equations", blurb: "Raise to the reciprocal; when the answer is ±, a single (negative) value, or no real solution.", built: true },
       { id: "es8", n: 8, title: "No-solution & strategy", blurb: "Exponential & surd equations: same base, common factor, let k, isolate-square-TEST, and every no-solution trap.", built: true },
+    ],
+  },
+  {
+    id: "eqn", name: "Equations & Inequalities", paper: "Paper 1", icon: "±", term: "revision",
+    hue: EQN_SHADES, signature: "#10b981", open: true,
+    blurb: "Which method, which move — brackets = 0, the k-method, restrictions, the bowl, and Δ. Theory and traps, no crunching.",
+    quests: [
+      { id: "eq1", n: 1, title: "Standard form & brackets = 0", blurb: "Everything to one side; each bracket = 0 (don't multiply out!); roots ↔ factors; EQN mode.", built: true },
+      { id: "eq2", n: 2, title: "The special cases", blurb: "No b, no c, x² = negative; same-base exponents, 2ˣ = −4, and where x^(2/3) = 16 gets its ±.", built: true },
+      { id: "eq3", n: 3, title: "The k-method", blurb: "A repeated bracket → let k stand for it. What k is, why you're not done at k, and the restriction that rides along.", built: true },
+      { id: "eq4", n: 4, title: "Fractions & restrictions", blurb: "Factorise the denominators, the negative twin, the LCD — and restrictions BEFORE you solve.", built: true },
+      { id: "eq5", n: 5, title: "Perfect squares & the turning point", blurb: "c = (b/2)² (only when a = 1!), the k sign trap, and reading TP(p ; q) — p flips, q doesn't.", built: true },
+      { id: "eq6", n: 6, title: "The formula & simultaneous", blurb: "When to use it, the two lines you must show, signs into the calculator, and the substitution method.", built: true },
+      { id: "eq7", n: 7, title: "Inequalities: flip & the bowl", blurb: "Switch the sign on × or ÷ negative; CP; inside the bowl vs left/right — read it off the sketch.", built: true },
+      { id: "eq8", n: 8, title: "Nature of roots & know the difference", blurb: "Δ = b² − 4ac, the three pictures, the three question types — and no solution vs undefined vs non-real vs N.A.", built: true },
     ],
   },
 ];
